@@ -380,17 +380,17 @@ function maskRookAttacks(square: number) {
   let tf = square % 8;
 
   // mask relevant rook occupancy bits
-  for (r = tr + 1, f =  tf; r <= 6; r++) {
-    attacks |= (1n << BigInt(r * 8 + f));
+  for (r = tr + 1; r <= 6; r++) {
+    attacks |= (1n << BigInt(r * 8 + tf));
   }
-  for (r = tr - 1, f = tf; r >= 1; r--) {
-    attacks |= (1n << BigInt(r * 8 + f));
+  for (r = tr - 1; r >= 1; r--) {
+    attacks |= (1n << BigInt(r * 8 + tf));
   }
-  for (r = tr, f = tf + 1; f <= 6; f++) {
-    attacks |= (1n << BigInt(r * 8 + f));
+  for (f = tf + 1; f <= 6; f++) {
+    attacks |= (1n << BigInt(tr * 8 + f));
   }
-  for (r = tr, f = tf - 1; f >= 1; f--) {
-    attacks |= (1n << BigInt(r * 8 + f));
+  for (f = tf - 1; f >= 1; f--) {
+    attacks |= (1n << BigInt(tr * 8 + f));
   }
 
   return BigInt.asUintN(64, attacks);
@@ -421,11 +421,9 @@ function initLeapersAttacks() {
 function main() {
   initLeapersAttacks();
 
-  // for (let square = 0; square < 64; square++) {
-  //   printBitboard(maskBishopAttacks(square));
-  // }
-
-  printBitboard(maskRookAttacks(d4));
+  for (let square = 0; square < 64; square++) {
+    printBitboard(maskRookAttacks(square));
+  }
 
   return 0;
 }
