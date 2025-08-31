@@ -161,7 +161,9 @@ const getBit = (bitboard: bigint, square: number): bigint =>
 const setBit = (bitboard: bigint, square: number): bigint =>
   bitboard | (1n << SquareBigInt[square]!);
 const popBit = (bitboard: bigint, square: number): bigint =>
-  getBit(bitboard, square) ? bitboard ^ (1n << SquareBigInt[square]!) : bitboard;
+  getBit(bitboard, square)
+    ? bitboard ^ (1n << SquareBigInt[square]!)
+    : bitboard;
 
 /*********************************************************\
 ===========================================================
@@ -184,9 +186,7 @@ function printBitboard(bitboard: bigint) {
         process.stdout.write(`  ${8 - rank}  `);
       }
       // print bit state (either 1 or 0)
-      process.stdout.write(
-        ` ${getBit(bitboard, square) ? 1 : 0} `
-      );
+      process.stdout.write(` ${getBit(bitboard, square) ? 1 : 0} `);
     }
     console.log("");
   }
@@ -354,16 +354,16 @@ function maskBishopAttacks(square: number) {
 
   // mask relevant bishop occupancy bits
   for (r = tr + 1, f = tf + 1; r <= 6 && f <= 6; r++, f++) {
-    attacks |= (1n << BigInt((r * 8 + f)));
+    attacks |= 1n << BigInt(r * 8 + f);
   }
   for (r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--) {
-    attacks |= (1n << BigInt((r * 8 + f)));
+    attacks |= 1n << BigInt(r * 8 + f);
   }
   for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--) {
-    attacks |= (1n << BigInt((r * 8 + f)));
+    attacks |= 1n << BigInt(r * 8 + f);
   }
   for (r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++) {
-    attacks |= (1n << BigInt((r * 8 + f)));
+    attacks |= 1n << BigInt(r * 8 + f);
   }
 
   return BigInt.asUintN(64, attacks);
@@ -371,26 +371,85 @@ function maskBishopAttacks(square: number) {
 
 function maskRookAttacks(square: number) {
   let attacks = 0n;
-  
+
   // rank & file
   let r, f;
-  
+
   // target rank & file
   let tr = Math.trunc(square / 8);
   let tf = square % 8;
 
   // mask relevant rook occupancy bits
   for (r = tr + 1; r <= 6; r++) {
-    attacks |= (1n << BigInt(r * 8 + tf));
+    attacks |= 1n << BigInt(r * 8 + tf);
   }
   for (r = tr - 1; r >= 1; r--) {
-    attacks |= (1n << BigInt(r * 8 + tf));
+    attacks |= 1n << BigInt(r * 8 + tf);
   }
   for (f = tf + 1; f <= 6; f++) {
-    attacks |= (1n << BigInt(tr * 8 + f));
+    attacks |= 1n << BigInt(tr * 8 + f);
   }
   for (f = tf - 1; f >= 1; f--) {
-    attacks |= (1n << BigInt(tr * 8 + f));
+    attacks |= 1n << BigInt(tr * 8 + f);
+  }
+
+  return BigInt.asUintN(64, attacks);
+}
+
+// generate bishop attacks on the fly
+function bishopAttacksOnTheFly(square: number, block: bigint) {
+  let attacks = 0n;
+
+  let r, f;
+
+  let tr = Math.trunc(square / 8);
+  let tf = square % 8;
+
+  // mask attacks, if we hit a blocker, don't go any further
+  for (r = tr + 1, f = tf + 1; r <= 7 && f <= 7; r++, f++) {
+    attacks |= 1n << BigInt(r * 8 + f);
+    if ((1n << BigInt(r * 8 + f)) & block) break;
+  }
+  for (r = tr + 1, f = tf - 1; r <= 7 && f >= 0; r++, f--) {
+    attacks |= 1n << BigInt(r * 8 + f);
+    if ((1n << BigInt(r * 8 + f)) & block) break;
+  }
+  for (r = tr - 1, f = tf - 1; r >= 0 && f >= 0; r--, f--) {
+    attacks |= 1n << BigInt(r * 8 + f);
+    if ((1n << BigInt(r * 8 + f)) & block) break;
+  }
+  for (r = tr - 1, f = tf + 1; r >= 0 && f <= 7; r--, f++) {
+    attacks |= 1n << BigInt(r * 8 + f);
+    if ((1n << BigInt(r * 8 + f)) & block) break;
+  }
+
+  return BigInt.asUintN(64, attacks);
+}
+
+function rookAttacksOnTheFly(square: number, block: bigint) {
+  let attacks = 0n;
+
+  let r, f;
+
+  let tr = Math.trunc(square / 8);
+  let tf = square % 8;
+
+  // mask attacks, if we hit a blocker, don't go any further
+  for (r = tr + 1; r <= 7; r++) {
+    attacks |= 1n << BigInt(r * 8 + tf);
+    if ((1n << BigInt(r * 8 + tf)) & block) break;
+  }
+  for (r = tr - 1; r >= 0; r--) {
+    attacks |= 1n << BigInt(r * 8 + tf);
+    if ((1n << BigInt(r * 8 + tf)) & block) break;
+  }
+  for (f = tf + 1; f <= 7; f++) {
+    attacks |= 1n << BigInt(tr * 8 + f);
+    if ((1n << BigInt(tr * 8 + f)) & block) break;
+  }
+  for (f = tf - 1; f >= 0; f--) {
+    attacks |= 1n << BigInt(tr * 8 + f);
+    if ((1n << BigInt(tr * 8 + f)) & block) break;
   }
 
   return BigInt.asUintN(64, attacks);
@@ -421,9 +480,18 @@ function initLeapersAttacks() {
 function main() {
   initLeapersAttacks();
 
-  for (let square = 0; square < 64; square++) {
-    printBitboard(maskRookAttacks(square));
-  }
+  // for (let square = 0; square < 64; square++) {
+  //   printBitboard(bishopAttacksOnTheFly(square, 0n));
+  // }
+
+  let bitboard = 0n;
+  bitboard = setBit(bitboard, f5);
+  bitboard = setBit(bitboard, d8);
+  bitboard = setBit(bitboard, c5);
+  bitboard = setBit(bitboard, d2);
+  printBitboard(bitboard);
+
+  printBitboard(rookAttacksOnTheFly(d5, bitboard));
 
   return 0;
 }
