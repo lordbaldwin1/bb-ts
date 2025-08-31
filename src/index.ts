@@ -1,71 +1,139 @@
 // board squares
-const a8 = 0n,
-  b8 = 1n,
-  c8 = 2n,
-  d8 = 3n,
-  e8 = 4n,
-  f8 = 5n,
-  g8 = 6n,
-  h8 = 7n;
-const a7 = 8n,
-  b7 = 9n,
-  c7 = 10n,
-  d7 = 11n,
-  e7 = 12n,
-  f7 = 13n,
-  g7 = 14n,
-  h7 = 15n;
-const a6 = 16n,
-  b6 = 17n,
-  c6 = 18n,
-  d6 = 19n,
-  e6 = 20n,
-  f6 = 21n,
-  g6 = 22n,
-  h6 = 23n;
-const a5 = 24n,
-  b5 = 25n,
-  c5 = 26n,
-  d5 = 27n,
-  e5 = 28n,
-  f5 = 29n,
-  g5 = 30n,
-  h5 = 31n;
-const a4 = 32n,
-  b4 = 33n,
-  c4 = 34n,
-  d4 = 35n,
-  e4 = 36n,
-  f4 = 37n,
-  g4 = 38n,
-  h4 = 39n;
-const a3 = 40n,
-  b3 = 41n,
-  c3 = 42n,
-  d3 = 43n,
-  e3 = 44n,
-  f3 = 45n,
-  g3 = 46n,
-  h3 = 47n;
-const a2 = 48n,
-  b2 = 49n,
-  c2 = 50n,
-  d2 = 51n,
-  e2 = 52n,
-  f2 = 53n,
-  g2 = 54n,
-  h2 = 55n;
-const a1 = 56n,
-  b1 = 57n,
-  c1 = 58n,
-  d1 = 59n,
-  e1 = 60n,
-  f1 = 61n,
-  g1 = 62n,
-  h1 = 63n;
+const a8 = 0,
+  b8 = 1,
+  c8 = 2,
+  d8 = 3,
+  e8 = 4,
+  f8 = 5,
+  g8 = 6,
+  h8 = 7;
+const a7 = 8,
+  b7 = 9,
+  c7 = 10,
+  d7 = 11,
+  e7 = 12,
+  f7 = 13,
+  g7 = 14,
+  h7 = 15;
+const a6 = 16,
+  b6 = 17,
+  c6 = 18,
+  d6 = 19,
+  e6 = 20,
+  f6 = 21,
+  g6 = 22,
+  h6 = 23;
+const a5 = 24,
+  b5 = 25,
+  c5 = 26,
+  d5 = 27,
+  e5 = 28,
+  f5 = 29,
+  g5 = 30,
+  h5 = 31;
+const a4 = 32,
+  b4 = 33,
+  c4 = 34,
+  d4 = 35,
+  e4 = 36,
+  f4 = 37,
+  g4 = 38,
+  h4 = 39;
+const a3 = 40,
+  b3 = 41,
+  c3 = 42,
+  d3 = 43,
+  e3 = 44,
+  f3 = 45,
+  g3 = 46,
+  h3 = 47;
+const a2 = 48,
+  b2 = 49,
+  c2 = 50,
+  d2 = 51,
+  e2 = 52,
+  f2 = 53,
+  g2 = 54,
+  h2 = 55;
+const a1 = 56,
+  b1 = 57,
+  c1 = 58,
+  d1 = 59,
+  e1 = 60,
+  f1 = 61,
+  g1 = 62,
+  h1 = 63;
 
 const WHITE = 0;
 const BLACK = 1;
+
+const SquareBigInt = [
+  0n,
+  1n,
+  2n,
+  3n,
+  4n,
+  5n,
+  6n,
+  7n,
+  8n,
+  9n,
+  10n,
+  11n,
+  12n,
+  13n,
+  14n,
+  15n,
+  16n,
+  17n,
+  18n,
+  19n,
+  20n,
+  21n,
+  22n,
+  23n,
+  24n,
+  25n,
+  26n,
+  27n,
+  28n,
+  29n,
+  30n,
+  31n,
+  32n,
+  33n,
+  34n,
+  35n,
+  36n,
+  37n,
+  38n,
+  39n,
+  40n,
+  41n,
+  42n,
+  43n,
+  44n,
+  45n,
+  46n,
+  47n,
+  48n,
+  49n,
+  50n,
+  51n,
+  52n,
+  53n,
+  54n,
+  55n,
+  56n,
+  57n,
+  58n,
+  59n,
+  60n,
+  61n,
+  62n,
+  63n,
+  64n,
+];
 
 // for future use
 /*
@@ -79,16 +147,6 @@ const BLACK = 1;
 "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 */
 
-// bitboard data type - using bigint for 64-bit unsigned integers
-type Bitboard = bigint;
-
-function createBitboard(value: bigint | number): Bitboard {
-  if (typeof value === "number") {
-    return BigInt.asUintN(64, BigInt(value));
-  }
-  return BigInt.asUintN(64, value);
-}
-
 /*********************************************************\
 ===========================================================
 
@@ -98,12 +156,12 @@ function createBitboard(value: bigint | number): Bitboard {
 \*********************************************************/
 
 // Bit manipulation functions for bitboards
-const getBit = (bitboard: Bitboard, square: bigint): Bitboard =>
-  bitboard & (1n << square);
-const setBit = (bitboard: Bitboard, square: bigint): Bitboard =>
-  bitboard | (1n << square);
-const popBit = (bitboard: Bitboard, square: bigint): Bitboard =>
-  getBit(bitboard, square) ? bitboard ^ (1n << square) : bitboard;
+const getBit = (bitboard: bigint, square: number): bigint =>
+  bitboard & (1n << SquareBigInt[square]!);
+const setBit = (bitboard: bigint, square: number): bigint =>
+  bitboard | (1n << SquareBigInt[square]!);
+const popBit = (bitboard: bigint, square: number): bigint =>
+  getBit(bitboard, square) ? bitboard ^ (1n << SquareBigInt[square]!) : bitboard;
 
 /*********************************************************\
 ===========================================================
@@ -113,20 +171,22 @@ const popBit = (bitboard: Bitboard, square: bigint): Bitboard =>
 ===========================================================
 \*********************************************************/
 
-function printBitboard(bitboard: Bitboard) {
+function printBitboard(bitboard: bigint) {
   console.log("\n");
 
-  for (let rank = 0n; rank < 8n; rank++) {
-    for (let file = 0n; file < 8n; file++) {
+  for (let rank = 0; rank < 8; rank++) {
+    for (let file = 0; file < 8; file++) {
       // convert file & rank into square index
-      const square = rank * 8n + file;
+      const square = rank * 8 + file;
 
       // print ranks
       if (!file) {
-        process.stdout.write(`  ${8n - rank}  `);
+        process.stdout.write(`  ${8 - rank}  `);
       }
       // print bit state (either 1 or 0)
-      process.stdout.write(` ${getBit(bitboard, square) ? 1 : 0} `);
+      process.stdout.write(
+        ` ${getBit(bitboard, square) ? 1 : 0} `
+      );
     }
     console.log("");
   }
@@ -135,7 +195,7 @@ function printBitboard(bitboard: Bitboard) {
   console.log("\n      a  b  c  d  e  f  g  h \n");
 
   // print bitboard as unsigned decimal number
-  console.log("      Bitboard:", bitboard);
+  console.log("      Bitboard:", BigInt.asUintN(64, bitboard));
 }
 
 /*********************************************************\
@@ -218,11 +278,11 @@ const knightAttacks = new Array<bigint>(64).fill(0n);
 // king attacks table [square]
 const kingAttacks = new Array<bigint>(64).fill(0n);
 
-function maskPawnAttacks(side: number, square: bigint) {
+function maskPawnAttacks(side: number, square: number) {
   // result attacks bitboard
-  let attacks = createBitboard(0n);
+  let attacks = 0n;
   // piece bitboard
-  let bitboard = createBitboard(0n);
+  let bitboard = 0n;
   // set piece on board
   bitboard = setBit(bitboard, square);
 
@@ -235,12 +295,12 @@ function maskPawnAttacks(side: number, square: bigint) {
     if ((bitboard << 9n) & NOT_A_FILE) attacks |= bitboard << 9n;
   }
 
-  return attacks;
+  return BigInt.asUintN(64, attacks);
 }
 
-function maskKnightAttacks(square: bigint) {
-  let attacks = createBitboard(0n);
-  let bitboard = createBitboard(0n);
+function maskKnightAttacks(square: number) {
+  let attacks = 0n;
+  let bitboard = 0n;
   bitboard = setBit(bitboard, square);
 
   // up1 right2
@@ -261,38 +321,92 @@ function maskKnightAttacks(square: bigint) {
   //down1 right 2
   if ((bitboard << 10n) & NOT_AB_FILE) attacks |= bitboard << 10n;
 
-  return attacks;
+  return BigInt.asUintN(64, attacks);
 }
 
-function maskKingAttacks(square: bigint) {
-  let attacks = createBitboard(0n);
-  let bitboard = createBitboard(0n);
+function maskKingAttacks(square: number) {
+  let attacks = 0n;
+  let bitboard = 0n;
   bitboard = setBit(bitboard, square);
 
   if ((bitboard >> 1n) & NOT_H_FILE) attacks |= bitboard >> 1n;
   if ((bitboard >> 7n) & NOT_A_FILE) attacks |= bitboard >> 7n;
   if ((bitboard >> 9n) & NOT_H_FILE) attacks |= bitboard >> 9n;
-  attacks |= bitboard >> 8n;
+  if (bitboard >> 8n) attacks |= bitboard >> 8n;
 
   if ((bitboard << 1n) & NOT_A_FILE) attacks |= bitboard << 1n;
   if ((bitboard << 7n) & NOT_H_FILE) attacks |= bitboard << 7n;
   if ((bitboard << 9n) & NOT_A_FILE) attacks |= bitboard << 9n;
-  attacks |= bitboard << 8n;
+  if (bitboard << 8n) attacks |= bitboard << 8n;
 
-  return attacks;
+  return BigInt.asUintN(64, attacks);
+}
+
+function maskBishopAttacks(square: number) {
+  let attacks = 0n;
+
+  // init ranks & files
+  let r, f;
+
+  // init target rank & files
+  let tr = Math.trunc(square / 8);
+  let tf = square % 8;
+
+  // mask relevant bishop occupancy bits
+  for (r = tr + 1, f = tf + 1; r <= 6 && f <= 6; r++, f++) {
+    attacks |= (1n << BigInt((r * 8 + f)));
+  }
+  for (r = tr + 1, f = tf - 1; r <= 6 && f >= 1; r++, f--) {
+    attacks |= (1n << BigInt((r * 8 + f)));
+  }
+  for (r = tr - 1, f = tf - 1; r >= 1 && f >= 1; r--, f--) {
+    attacks |= (1n << BigInt((r * 8 + f)));
+  }
+  for (r = tr - 1, f = tf + 1; r >= 1 && f <= 6; r--, f++) {
+    attacks |= (1n << BigInt((r * 8 + f)));
+  }
+
+  return BigInt.asUintN(64, attacks);
+}
+
+function maskRookAttacks(square: number) {
+  let attacks = 0n;
+  
+  // rank & file
+  let r, f;
+  
+  // target rank & file
+  let tr = Math.trunc(square / 8);
+  let tf = square % 8;
+
+  // mask relevant rook occupancy bits
+  for (r = tr + 1, f =  tf; r <= 6; r++) {
+    attacks |= (1n << BigInt(r * 8 + f));
+  }
+  for (r = tr - 1, f = tf; r >= 1; r--) {
+    attacks |= (1n << BigInt(r * 8 + f));
+  }
+  for (r = tr, f = tf + 1; f <= 6; f++) {
+    attacks |= (1n << BigInt(r * 8 + f));
+  }
+  for (r = tr, f = tf - 1; f >= 1; f--) {
+    attacks |= (1n << BigInt(r * 8 + f));
+  }
+
+  return BigInt.asUintN(64, attacks);
 }
 
 function initLeapersAttacks() {
   for (let square = 0; square < 64; square++) {
     // init pawn attacks
-    pawnAttacks[WHITE][square] = maskPawnAttacks(WHITE, BigInt(square));
-    pawnAttacks[BLACK][square] = maskPawnAttacks(BLACK, BigInt(square));
+    pawnAttacks[WHITE][square] = maskPawnAttacks(WHITE, square);
+    pawnAttacks[BLACK][square] = maskPawnAttacks(BLACK, square);
 
     // init knight attacks
-    knightAttacks[square] = maskKnightAttacks(BigInt(square));
+    knightAttacks[square] = maskKnightAttacks(square);
 
     // init king attacks
-    kingAttacks[square] = maskKingAttacks(BigInt(square));
+    kingAttacks[square] = maskKingAttacks(square);
   }
 }
 
@@ -307,9 +421,11 @@ function initLeapersAttacks() {
 function main() {
   initLeapersAttacks();
 
-  for (let square = 0; square < 64; square++) {
-    printBitboard(kingAttacks[square]!);
-  }
+  // for (let square = 0; square < 64; square++) {
+  //   printBitboard(maskBishopAttacks(square));
+  // }
+
+  printBitboard(maskRookAttacks(d4));
 
   return 0;
 }
