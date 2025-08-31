@@ -67,7 +67,7 @@ const a1 = 56,
 const WHITE = 0;
 const BLACK = 1;
 
-const SquareBigInt = [
+const SquareToBigInt = [
   0n,
   1n,
   2n,
@@ -136,16 +136,72 @@ const SquareBigInt = [
 ];
 
 // for future use
-/*
-"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
-"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-"a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-"a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-"a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
-*/
+const SquareToCoordinates = [
+  "a8",
+  "b8",
+  "c8",
+  "d8",
+  "e8",
+  "f8",
+  "g8",
+  "h8",
+  "a7",
+  "b7",
+  "c7",
+  "d7",
+  "e7",
+  "f7",
+  "g7",
+  "h7",
+  "a6",
+  "b6",
+  "c6",
+  "d6",
+  "e6",
+  "f6",
+  "g6",
+  "h6",
+  "a5",
+  "b5",
+  "c5",
+  "d5",
+  "e5",
+  "f5",
+  "g5",
+  "h5",
+  "a4",
+  "b4",
+  "c4",
+  "d4",
+  "e4",
+  "f4",
+  "g4",
+  "h4",
+  "a3",
+  "b3",
+  "c3",
+  "d3",
+  "e3",
+  "f3",
+  "g3",
+  "h3",
+  "a2",
+  "b2",
+  "c2",
+  "d2",
+  "e2",
+  "f2",
+  "g2",
+  "h2",
+  "a1",
+  "b1",
+  "c1",
+  "d1",
+  "e1",
+  "f1",
+  "g1",
+  "h1",
+];
 
 /*********************************************************\
 ===========================================================
@@ -157,14 +213,33 @@ const SquareBigInt = [
 
 // Bit manipulation functions for bitboards
 const getBit = (bitboard: bigint, square: number): bigint =>
-  bitboard & (1n << SquareBigInt[square]!);
+  bitboard & (1n << SquareToBigInt[square]!);
+
 const setBit = (bitboard: bigint, square: number): bigint =>
-  bitboard | (1n << SquareBigInt[square]!);
+  bitboard | (1n << SquareToBigInt[square]!);
+
 const popBit = (bitboard: bigint, square: number): bigint =>
   getBit(bitboard, square)
-    ? bitboard ^ (1n << SquareBigInt[square]!)
+    ? bitboard ^ (1n << SquareToBigInt[square]!)
     : bitboard;
 
+const countBits = (bitboard: bigint) => {
+  let count = 0;
+
+  while (bitboard > 0n) {
+    // reset least significant first bit
+    bitboard &= bitboard - 1n;
+    count++;
+  }
+  return count;
+};
+const getLeastSignificantFirstBitIndex = (bitboard: bigint) => {
+  if (bitboard === 0n) {
+    return -1;
+  }
+
+  return countBits((bitboard & (~bitboard + 1n)) - 1n);
+};
 /*********************************************************\
 ===========================================================
 
@@ -484,14 +559,14 @@ function main() {
   //   printBitboard(bishopAttacksOnTheFly(square, 0n));
   // }
 
-  let bitboard = 0n;
-  bitboard = setBit(bitboard, f5);
-  bitboard = setBit(bitboard, d8);
-  bitboard = setBit(bitboard, c5);
-  bitboard = setBit(bitboard, d2);
-  printBitboard(bitboard);
-
-  printBitboard(rookAttacksOnTheFly(d5, bitboard));
+  let block = 0n;
+  block = setBit(block, f5);
+  // block = setBit(block, d8);
+  block = setBit(block, c5);
+  block = setBit(block, d2);
+  block = setBit(block, d3);
+  printBitboard(block);
+  console.log(getLeastSignificantFirstBitIndex(block), SquareToCoordinates[getLeastSignificantFirstBitIndex(block)]);
 
   return 0;
 }
