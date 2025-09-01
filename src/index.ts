@@ -544,6 +544,27 @@ function initLeapersAttacks() {
   }
 }
 
+function setOccupancy(index: number, bitsInMask: number, attackMask: bigint) {
+  // occupancy map
+  let occupancy = 0n;
+
+  for (let count = 0; count < bitsInMask; count++) {
+    // get LS1B index of attack mask
+    const square = getLeastSignificantFirstBitIndex(attackMask);
+
+    // pop LS1B in attack mask
+    attackMask = popBit(attackMask, square);
+
+    // make sure occupancy is on board
+    if (index & (1 << count)) {
+      // populate occupancy map
+      occupancy |= (1n << BigInt(square));
+    }
+  }
+
+  return BigInt.asUintN(64, occupancy);
+}
+
 /*********************************************************\
 ===========================================================
 
@@ -555,18 +576,12 @@ function initLeapersAttacks() {
 function main() {
   initLeapersAttacks();
 
-  // for (let square = 0; square < 64; square++) {
-  //   printBitboard(bishopAttacksOnTheFly(square, 0n));
-  // }
+  let attackMask = maskRookAttacks(d4);
 
-  let block = 0n;
-  block = setBit(block, f5);
-  // block = setBit(block, d8);
-  block = setBit(block, c5);
-  block = setBit(block, d2);
-  block = setBit(block, d3);
-  printBitboard(block);
-  console.log(getLeastSignificantFirstBitIndex(block), SquareToCoordinates[getLeastSignificantFirstBitIndex(block)]);
+
+  for (let i = 0; i < 4096; i++) {
+    printBitboard(setOccupancy(i, countBits(attackMask), attackMask));
+  }
 
   return 0;
 }
