@@ -341,6 +341,20 @@ const NOT_H_FILE = 9187201950435737471n;
 const NOT_HG_FILE = 4557430888798830399n;
 const NOT_AB_FILE = 18229723555195321596n;
 
+// Relevant occupancy bit count for every square on board
+const bishopRelevantBits = [
+  6, 5, 5, 5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5,
+  7, 9, 9, 7, 5, 5, 5, 5, 7, 9, 9, 7, 5, 5, 5, 5, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5,
+  5, 5, 5, 5, 6, 5, 5, 5, 5, 5, 5, 6,
+];
+
+const rookRelevantBits = [
+  12, 11, 11, 11, 11, 11, 11, 12, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10,
+  10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10,
+  10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 11, 10, 10, 10, 10, 10, 10, 11, 12,
+  11, 11, 11, 11, 11, 11, 12,
+];
+
 // pawn attacks table [side][square]
 const pawnAttacks = [
   new Array<bigint>(64).fill(0n),
@@ -544,21 +558,35 @@ function initLeapersAttacks() {
   }
 }
 
-function setOccupancy(index: number, bitsInMask: number, attackMask: bigint) {
+// index = 1, bitsInMask = 10, attackMask = rook d4
+// square idx = 11
+
+// Index is the configuration, if bitsInMask = 10, there are 2**10 - 1 = 1023 combinations
+// of variations in bits set for a 10 bit number. If we iterate 1...1023,
+// index will represent every combination by which bits are on/off. count helps us
+// "loop" over and check each bit of Index. If that bit is set, we set our occupancy bit on at
+// the associated square. We get the LS1B index so we know the offset for index->square.
+// We pop the bit because otherwise we would be trying to place each square in the same
+// place regardless of it's association with a particular index bit.
+function setOccupancy(
+  occupancyVariation: number,
+  bitsInMask: number,
+  attackMask: bigint
+) {
   // occupancy map
   let occupancy = 0n;
 
-  for (let count = 0; count < bitsInMask; count++) {
+  for (let idx = 0; idx < bitsInMask; idx++) {
     // get LS1B index of attack mask
     const square = getLeastSignificantFirstBitIndex(attackMask);
 
     // pop LS1B in attack mask
     attackMask = popBit(attackMask, square);
 
-    // make sure occupancy is on board
-    if (index & (1 << count)) {
+    // check if bit in variation at idx offset is turned on
+    if (occupancyVariation & (1 << idx)) {
       // populate occupancy map
-      occupancy |= (1n << BigInt(square));
+      occupancy |= 1n << BigInt(square);
     }
   }
 
@@ -576,11 +604,14 @@ function setOccupancy(index: number, bitsInMask: number, attackMask: bigint) {
 function main() {
   initLeapersAttacks();
 
-  let attackMask = maskRookAttacks(d4);
+  for (let rank = 0; rank < 8; rank++) {
+    for (let file = 0; file < 8; file++) {
+      const square = rank * 8 + file;
 
+      process.stdout.write(` ${countBits(maskRookAttacks(square))}, `);
+    }
 
-  for (let i = 0; i < 4096; i++) {
-    printBitboard(setOccupancy(i, countBits(attackMask), attackMask));
+    console.log();
   }
 
   return 0;
