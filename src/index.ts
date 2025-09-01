@@ -601,19 +601,34 @@ function setOccupancy(
 ===========================================================
 \*********************************************************/
 
+// pseudo random number state
+let state = BigInt.asUintN(32, 1804289383n);
+
+// generate 32-bit pseudo legal number
+function getRandom32BitUnsignedNumber() {
+  // get current state
+  let num = BigInt.asUintN(32, state);
+
+  // XOR shift algorithm
+  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 13n);
+  num ^= BigInt.asUintN(32, num) >> BigInt.asUintN(32, 17n);
+  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 5n);
+
+  // update random number state
+  state = num;
+
+  return BigInt.asUintN(32, num);
+}
+
 function main() {
   initLeapersAttacks();
 
-  for (let rank = 0; rank < 8; rank++) {
-    for (let file = 0; file < 8; file++) {
-      const square = rank * 8 + file;
 
-      process.stdout.write(` ${countBits(maskRookAttacks(square))}, `);
-    }
-
-    console.log();
-  }
-
+  console.log(getRandom32BitUnsignedNumber());
+  console.log(getRandom32BitUnsignedNumber());
+  console.log(getRandom32BitUnsignedNumber());
+  console.log(getRandom32BitUnsignedNumber());
+  console.log(getRandom32BitUnsignedNumber());
   return 0;
 }
 
