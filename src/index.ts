@@ -67,6 +67,9 @@ const a1 = 56,
 const WHITE = 0;
 const BLACK = 1;
 
+const ROOK = 0;
+const BISHOP = 1;
+
 const SquareToBigInt = [
   0n,
   1n,
@@ -202,6 +205,56 @@ const SquareToCoordinates = [
   "g1",
   "h1",
 ];
+
+/*********************************************************\
+===========================================================
+
+                      Random numbers
+
+===========================================================
+\*********************************************************/
+
+// pseudo random number state
+let randomState = BigInt.asUintN(32, 1804289383n);
+
+// generate 32-bit pseudo legal number
+function getRandom32BitUnsignedNumber() {
+  // get current randomState
+  let num = BigInt.asUintN(32, randomState);
+
+  // XOR shift algorithm
+  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 13n);
+  num ^= BigInt.asUintN(32, num) >> BigInt.asUintN(32, 17n);
+  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 5n);
+
+  // update random number randomState
+  randomState = num;
+
+  return BigInt.asUintN(32, num);
+}
+
+// generate 64-bit pseudo legal numbers
+function getRandom64BitUnsignedNumber() {
+  // define 4 random numbers
+  let n1, n2, n3, n4;
+
+  // init random numbers slicing 16 bits from MS1B side
+  n1 = BigInt.asUintN(64, getRandom32BitUnsignedNumber() & BigInt(0xffff));
+  n2 = BigInt.asUintN(64, getRandom32BitUnsignedNumber() & BigInt(0xffff));
+  n3 = BigInt.asUintN(64, getRandom32BitUnsignedNumber() & BigInt(0xffff));
+  n4 = BigInt.asUintN(64, getRandom32BitUnsignedNumber() & BigInt(0xffff));
+
+  return n1 | (n2 << 16n) | (n3 << 32n) | (n4 << 48n);
+}
+
+// generate magic number candidate
+function generateMagicNumber() {
+  return (
+    getRandom64BitUnsignedNumber() &
+    getRandom64BitUnsignedNumber() &
+    getRandom64BitUnsignedNumber()
+  );
+}
 
 /*********************************************************\
 ===========================================================
@@ -596,39 +649,89 @@ function setOccupancy(
 /*********************************************************\
 ===========================================================
 
+                        Magics
+
+===========================================================
+\*********************************************************/
+
+function findMagicNumber(square: number, relevantBits: number, bishop: number) {
+  const occupancies = new BigUint64Array(4096);
+  const attacks = new BigUint64Array(4096);
+
+  let attackMask = bishop ? maskBishopAttacks(square) : maskRookAttacks(square);
+
+  const occupancyIndices = 1 << relevantBits;
+
+  for (let i = 0; i < occupancyIndices; i++) {
+    occupancies[i] = setOccupancy(
+      i,
+      relevantBits,
+      BigInt.asUintN(64, attackMask)
+    );
+
+    attacks[i] = bishop
+      ? bishopAttacksOnTheFly(square, occupancies[i]!)
+      : rookAttacksOnTheFly(square, occupancies[i]!);
+  }
+
+  for (let randomCount = 0; randomCount < 1000000; randomCount++) {
+    const magicNumber = generateMagicNumber();
+    let usedAttacks = new BigUint64Array(4096);
+
+    // skip bad magic numbers
+    if (
+      countBits(
+        BigInt.asUintN(64, attackMask * magicNumber) & 0xff00000000000000n
+      ) < 6
+    ) {
+      continue;
+    }
+
+    let failed = false;
+    for (let i = 0; !failed && i < occupancyIndices; i++) {
+      let magicIndex = Number(
+        (occupancies[i]! * BigInt.asUintN(64, magicNumber)) >>
+          BigInt.asUintN(64, 64n - BigInt(relevantBits))
+      );
+
+      if (usedAttacks[magicIndex] === 0n) {
+        usedAttacks[magicIndex] = attacks[i]!;
+      } else if (usedAttacks[magicIndex] !== attacks[i]) {
+        failed = true;
+        break;
+      }
+    }
+    
+    if (!failed) {
+      return magicNumber;
+    }
+  }
+  console.log("Magic number failed!");
+  return 0n;
+}
+
+// init magic numbers
+function initMagicNumbers() {
+  for (let i = 0; i < 64; i++) {
+    console.log(i);
+    // init rook magic numbers
+    console.log(`0x${findMagicNumber(i, rookRelevantBits[i]!, ROOK).toString(16)}`);
+  }
+}
+
+/*********************************************************\
+===========================================================
+
                         Main driver
 
 ===========================================================
 \*********************************************************/
 
-// pseudo random number state
-let state = BigInt.asUintN(32, 1804289383n);
-
-// generate 32-bit pseudo legal number
-function getRandom32BitUnsignedNumber() {
-  // get current state
-  let num = BigInt.asUintN(32, state);
-
-  // XOR shift algorithm
-  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 13n);
-  num ^= BigInt.asUintN(32, num) >> BigInt.asUintN(32, 17n);
-  num ^= BigInt.asUintN(32, num) << BigInt.asUintN(32, 5n);
-
-  // update random number state
-  state = num;
-
-  return BigInt.asUintN(32, num);
-}
-
 function main() {
   initLeapersAttacks();
 
+  initMagicNumbers();
 
-  console.log(getRandom32BitUnsignedNumber());
-  console.log(getRandom32BitUnsignedNumber());
-  console.log(getRandom32BitUnsignedNumber());
-  console.log(getRandom32BitUnsignedNumber());
-  console.log(getRandom32BitUnsignedNumber());
   return 0;
 }
 
